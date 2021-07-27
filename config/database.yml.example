@@ -1,0 +1,10 @@
+default: &default
+  adapter: mysql2
+  encoding: utf8mb4
+  pool: 5
+  host: <%= ENV['MYSQL_HOST'] %>
+  username: <%= ENV['MYSQL_USER_NAME'] %>
+  password: <%= ENV['MYSQL_USER_PASSWORD'] %>
+development:
+  <<: *default
+  database: hotel_central

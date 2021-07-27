@@ -1,0 +1,67 @@
+version: '3.4'
+services: 
+  mysql:
+    image: 'mysql:5.6'
+    volumes:
+      - './.datastore/mysql-data:/var/lib/mysql:delegated'
+    environment:
+      MYSQL_DATABASE: hotel_central
+      MYSQL_ROOT_PASSWORD: secure_root
+    ports:
+      - '3306:3306'
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    volumes:
+      - /sessions
+    ports:
+      - '8080:80'
+  dashboard:
+    command: 'bash -c "rm -f tmp/pids/server.pid && bundle && rails db:migrate && rails db:seed && sleep 100d"'
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - '/etc/hosts:/etc/hosts'
+      - '.:/app'
+    ports:
+      - '3002:3000'
+    env_file:
+      - ".env"
+    stdin_open: true
+    tty: true
+  elastic:
+    image: 'elasticsearch:5.6'
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - './.datastore/es-data:/usr/share/elasticsearch/data:delegated'
+  kibana:
+    image: docker.elastic.co/kibana/kibana:5.6.16
+    command: [ "/bin/bash", "-c", "/usr/share/kibana/bin/kibana-plugin remove x-pack; /usr/local/bin/kibana-docker" ]
+    environment:
+      - SERVER_NAME=elastic
+      - ELASTICSEARCH_URL=http://elastic:9200/
+    ports:
+      - '5601:5601'
+  webpacker:
+    command: 'bash -c "bundle && yarn && sleep 100d"'
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - ".env"
+    volumes:
+      - "/etc/hosts:/etc/hosts"
+    ports:
+      - "3035:3035"
+    stdin_open: true
+    tty: true

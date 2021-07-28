@@ -104,7 +104,7 @@ class Restaurant < ApplicationRecord
         type: 'checkbox',
         es_type: 'keyword',
         options: {
-          field: 'cuisine_type',
+          field: 'cuisines',
           labels: {
             'any' => 'Any',
             'american' => 'American',
